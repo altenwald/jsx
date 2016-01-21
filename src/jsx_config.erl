@@ -67,6 +67,8 @@ parse_config([multi_term|Rest], Config) ->
     parse_config(Rest, Config#config{multi_term=true});
 parse_config([return_tail|Rest], Config) ->
     parse_config(Rest, Config#config{return_tail=true});
+parse_config([{format_date, Format}|Rest], Config) ->
+    parse_config(Rest, Config#config{format_date=Format});
 %% retained for backwards compat, now does nothing however
 parse_config([repeat_keys|Rest], Config) ->
     parse_config(Rest, Config);
@@ -122,7 +124,7 @@ config_to_list(Config) ->
             ({Key, true}) -> Key
         end,
         lists:filter(
-            fun({_, false}) -> false; (_) -> true end,
+            fun({_, false}) -> false; ({_, X}) when is_list(X) -> X; (_) -> true end,
             lists:zip(record_info(fields, config), tl(tuple_to_list(Config)))
         )
     )).
@@ -163,7 +165,8 @@ valid_flags() ->
         stream,
         uescape,
         error_handler,
-        incomplete_handler
+        incomplete_handler,
+        format_date
     ].
 
 
