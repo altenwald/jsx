@@ -80,7 +80,8 @@ parse_config([strict|Rest], Config) ->
         strict_commas=true,
         strict_utf8=true,
         strict_single_quotes=true,
-        strict_escapes=true
+        strict_escapes=true,
+        strict_control_codes=true
     });
 parse_config([{strict, Strict}|Rest], Config) ->
     parse_strict(Strict, Rest, Config);
@@ -110,6 +111,8 @@ parse_strict([single_quotes|Strict], Rest, Config) ->
     parse_strict(Strict, Rest, Config#config{strict_single_quotes=true});
 parse_strict([escapes|Strict], Rest, Config) ->
     parse_strict(Strict, Rest, Config#config{strict_escapes=true});
+parse_strict([control_codes|Strict], Rest, Config) ->
+    parse_strict(Strict, Rest, Config#config{strict_control_codes=true});
 parse_strict(_Strict, _Rest, _Config) ->
     erlang:error(badarg).
 
@@ -135,7 +138,7 @@ reduce_config(Input) -> reduce_config(Input, [], []).
 reduce_config([], Output, Strict) ->
     case length(Strict) of
         0 -> lists:reverse(Output);
-        4 -> lists:reverse(Output) ++ [strict];
+        5 -> lists:reverse(Output) ++ [strict];
         _ -> lists:reverse(Output) ++ [{strict, lists:reverse(Strict)}]
     end;
 reduce_config([strict_comments|Input], Output, Strict) ->
@@ -146,6 +149,8 @@ reduce_config([strict_single_quotes|Input], Output, Strict) ->
     reduce_config(Input, Output, [single_quotes] ++ Strict);
 reduce_config([strict_escapes|Input], Output, Strict) ->
     reduce_config(Input, Output, [escapes] ++ Strict);
+reduce_config([strict_control_codes|Input], Output, Strict) ->
+    reduce_config(Input, Output, [control_codes] ++ Strict);
 reduce_config([Else|Input], Output, Strict) ->
     reduce_config(Input, [Else] ++ Output, Strict).
 
@@ -208,6 +213,7 @@ config_test_() ->
                     strict_utf8 = true,
                     strict_single_quotes = true,
                     strict_escapes = true,
+                    strict_control_codes = true,
                     stream = true,
                     uescape = true
                 },
@@ -230,7 +236,8 @@ config_test_() ->
                     strict_commas = true,
                     strict_utf8 = true,
                     strict_single_quotes = true,
-                    strict_escapes = true
+                    strict_escapes = true,
+                    strict_control_codes = true
                 },
                 parse_config([strict])
             )
@@ -303,6 +310,7 @@ config_to_list_test_() ->
                     strict_utf8 = true,
                     strict_single_quotes = true,
                     strict_escapes = true,
+                    strict_control_codes = true,
                     stream = true,
                     uescape = true
                 }
@@ -321,7 +329,8 @@ config_to_list_test_() ->
             config_to_list(#config{strict_comments = true,
                 strict_utf8 = true,
                 strict_single_quotes = true,
-                strict_escapes = true})
+                strict_escapes = true,
+                strict_control_codes = true})
         )},
         {"error handler", ?_assertEqual(
             [{error_handler, fun ?MODULE:fake_error_handler/3}],

@@ -47,6 +47,7 @@
 -ifndef(maps_support).
 -type json_value() :: list(json_value())
     | list({binary() | atom(), json_value()}) | [{},...]
+    | {with_tail, json_value(), binary()}
     | true
     | false
     | null
@@ -58,6 +59,7 @@
 -ifdef(maps_support).
 -type json_value() :: list(json_value())
     | list({binary() | atom(), json_value()}) | [{},...]
+    | {with_tail, json_value(), binary()}
     | map()
     | true
     | false
@@ -88,7 +90,7 @@ parse_config([labels|Rest], Config) ->
     parse_config(Rest, Config#config{labels = binary});
 parse_config([{return_maps, Val}|Rest], Config)
         when Val == true; Val == false ->
-    parse_config(Rest, Config#config{return_maps = true});
+    parse_config(Rest, Config#config{return_maps = Val});
 parse_config([return_maps|Rest], Config) ->
     parse_config(Rest, Config#config{return_maps = true});
 parse_config([{K, _}|Rest] = Options, Config) ->
@@ -423,6 +425,10 @@ return_maps_test_() ->
         {"an empty map", ?_assertEqual(
             [{}],
             jsx:decode(<<"{}">>, [])
+        )},
+        {"an empty map", ?_assertEqual(
+            [{}],
+            jsx:decode(<<"{}">>, [{return_maps, false}])
         )},
         {"a small map", ?_assertEqual(
             #{<<"awesome">> => true, <<"library">> => <<"jsx">>},
